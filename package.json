@@ -1,0 +1,38 @@
+{
+  "name": "ai-interview-assistant",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Transparent, permission-based AI Interview Assistant \u2014 Windows tray app + web dashboard",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "dev:backend": "npm run dev -w apps/backend",
+    "dev:web": "npm run dev -w apps/web",
+    "dev:desktop": "npm run dev -w apps/desktop",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "e2e": "npm run e2e -w apps/web",
+    "package:windows": "npm run package:windows -w apps/desktop"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "SEE-LICENSE",
+  "allowScripts": {
+    "argon2@0.41.1": true,
+    "electron@34.5.8": true,
+    "esbuild@0.28.2": true,
+    "esbuild@0.25.12": true
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.10.0",
+    "typescript-eslint": "^8.70.0"
+  },
+  "type": "module"
+}
