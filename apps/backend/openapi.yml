@@ -1,0 +1,214 @@
+openapi: 3.0.3
+info:
+  title: AI Interview Assistant API
+  version: 0.2.0
+  description: >
+    Permission-based AI interview practice platform. Authenticate with
+    `Authorization: Bearer <accessToken>` on every protected route.
+    Access tokens expire after 15 minutes; rotate them with /auth/refresh.
+servers:
+  - url: http://localhost:3001
+paths:
+  /health:
+    get:
+      description: Liveness probe including driver + database health.
+      responses: { '200': { description: ok } }
+  /openapi.json:
+    get:
+      description: Machine-readable copy of this contract.
+      responses: { '200': { description: contract } }
+  /docs:
+    get:
+      description: Human-readable HTML reference for this contract.
+      responses: { '200': { description: docs } }
+  /auth/register:
+    post:
+      description: Create an account. Passwords are hashed with Argon2id.
+      responses: { '200': { description: user + tokens }, '409': { description: email taken } }
+  /auth/login:
+    post:
+      description: Sign in with email + password.
+      responses: { '200': { description: user + tokens }, '401': { description: bad credentials } }
+  /auth/refresh:
+    post:
+      description: Rotate a refresh token (old token revoked; replay revokes the whole family).
+      responses: { '200': { description: rotated tokens }, '401': { description: invalid/expired/reused } }
+  /auth/logout:
+    post:
+      description: 'Revoke one refresh token, or every token with `{ all: true }`.'
+      responses: { '200': { description: ok } }
+  /auth/me:
+    get:
+      description: Current user + their settings and privacy state.
+      responses: { '200': { description: profile }, '401': { description: unauthorized } }
+  /sessions:
+    get:
+      description: Paginated session list with question counts and evaluation scores. `?limit&offset`.
+      responses: { '200': { description: list } }
+    post:
+      description: Start a session. 409 when another is active. Optionally attaches resume/JD context.
+      responses: { '200': { description: created }, '409': { description: active session exists } }
+  /sessions/{id}:
+    get:
+      description: 'Full session detail: transcripts, detected questions with answers, evaluation.'
+      responses: { '200': { description: detail }, '404': { description: not found } }
+    delete:
+      description: Delete a session and everything recorded in it.
+      responses: { '200': { description: deleted } }
+  /sessions/{id}/pause:
+    post:
+      description: Pause an active session.
+      responses: { '200': { description: paused } }
+  /sessions/{id}/resume:
+    post:
+      description: Resume a paused session.
+      responses: { '200': { description: resumed } }
+  /sessions/{id}/end:
+    post:
+      description: End a session and generate its evaluation report (spec §11).
+      responses: { '200': { description: ended + evaluation } }
+  /sessions/{id}/evaluate:
+    post:
+      description: Recompute the evaluation report for a session.
+      responses: { '200': { description: evaluation } }
+  /sessions/{id}/evaluation:
+    get:
+      description: Stored evaluation report (null until the session is ended or evaluated).
+      responses: { '200': { description: evaluation } }
+  /sessions/{id}/transcripts:
+    post:
+      description: Append a transcript line (desktop + realtime pipelines).
+      responses: { '200': { description: stored } }
+  /sessions/{id}/transcript:
+    get:
+      description: Transcript lines plus plain-text rendering.
+      responses: { '200': { description: transcript } }
+    delete:
+      description: Delete the transcript of a session (granular retention, spec §14).
+      responses: { '200': { description: deleted } }
+  /sessions/{id}/questions:
+    post:
+      description: Record a detected question.
+      responses: { '200': { description: question } }
+  /sessions/{id}/answers:
+    post:
+      description: Record (or replace) the AI answer for a question.
+      responses: { '200': { description: answer } }
+  /ai/question:
+    post:
+      description: 'Generate an answer. With `{ stream: true }` the response is Server-Sent Events. Persists when sessionId + questionId are given.'
+      responses: { '200': { description: answer (or SSE) } }
+  /ai/evaluate:
+    post:
+      description: Score a single (question, answer) pair.
+      responses: { '200': { description: feedback } }
+  /ai/summarize:
+    post:
+      description: Summarise a session transcript.
+      responses: { '200': { description: summary } }
+  /ai/classify:
+    post:
+      description: Classify a question into the shared category taxonomy.
+      responses: { '200': { description: category } }
+  /ai/transcribe:
+    post:
+      description: Transcribe a base64 PCM16 chunk server-side (honours the cloud-transcription privacy switch).
+      responses: { '200': { description: text } }
+  /ai/providers:
+    get:
+      description: Available + user-configured AI providers (no key material is ever returned).
+      responses: { '200': { description: providers } }
+  /resume/upload:
+    post:
+      description: Upload a resume (multipart PDF/DOCX/TXT/MD or JSON text) and have it parsed.
+      responses: { '200': { description: resume } }
+  /resume:
+    get:
+      description: List uploaded resumes (parsed metadata only).
+      responses: { '200': { description: list } }
+  /resume/{id}:
+    get:
+      description: Resume with stored content.
+      responses: { '200': { description: resume }, '404': { description: not found } }
+    delete:
+      description: Delete a resume.
+      responses: { '200': { description: deleted } }
+  /resume/{id}/match:
+    get:
+      description: Required-skill to user-evidence matching. Requires `?jobDescriptionId`.
+      responses: { '200': { description: matches } }
+  /resume/{id}/questions:
+    get:
+      description: Generate interview questions from resume + optional JD context. `?jobDescriptionId&count`.
+      responses: { '200': { description: questions } }
+  /job-descriptions:
+    get:
+      description: List stored job descriptions.
+      responses: { '200': { description: list } }
+    post:
+      description: Save a job description (parsed on write).
+      responses: { '200': { description: created } }
+  /job-descriptions/{id}:
+    get:
+      description: One stored job description.
+      responses: { '200': { description: detail }, '404': { description: not found } }
+    delete:
+      description: Delete a job description.
+      responses: { '200': { description: deleted } }
+  /settings:
+    get:
+      description: Current user settings.
+      responses: { '200': { description: settings } }
+    patch:
+      description: Partially update settings (strict schema).
+      responses: { '200': { description: settings } }
+  /privacy:
+    get:
+      description: Current privacy-centre state (spec §14).
+      responses: { '200': { description: privacy } }
+    patch:
+      description: Toggle capture/cloud/recording switches and retention.
+      responses: { '200': { description: privacy } }
+  /providers:
+    get:
+      description: Configured providers (no key material).
+      responses: { '200': { description: list } }
+    post:
+      description: Store/rotate an encrypted provider key (AES-256-GCM at rest).
+      responses: { '200': { description: stored } }
+  /providers/{id}:
+    delete:
+      description: Delete a configured provider.
+      responses: { '200': { description: deleted } }
+  /providers/{provider}/test:
+    post:
+      description: Verify stored key material decrypts (connectivity is proven at call time).
+      responses: { '200': { description: ok } }
+  /account/export:
+    get:
+      description: Machine-readable export of all account data (spec §13). Download as JSON.
+      responses: { '200': { description: export } }
+  /account/audit-logs:
+    get:
+      description: Paginated audit trail for the account.
+      responses: { '200': { description: logs } }
+  /usage:
+    get:
+      description: 'Aggregated metering: sessions, AI requests/tokens, transcription minutes (spec §17).'
+      responses: { '200': { description: usage } }
+  /usage/transcription:
+    post:
+      description: Report desktop-transcribed audio seconds for metering.
+      responses: { '200': { description: ok } }
+  /metrics:
+    get:
+      description: 'Operational server metrics: requests, error rate, p95, WS connections, DB health.'
+      responses: { '200': { description: metrics } }
+  /metrics/dashboard:
+    get:
+      description: Dashboard cards + charts aggregation (spec §10).
+      responses: { '200': { description: dashboard } }
+  /ws/info:
+    get:
+      description: Current realtime connection count.
+      responses: { '200': { description: info } }
