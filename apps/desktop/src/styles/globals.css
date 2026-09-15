@@ -1,0 +1,177 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Design tokens (raw HSL triplets; light values here, .dark overrides below) ── */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 4%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 4%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 4%;
+  --primary: 221 83% 53%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 5% 96%;
+  --secondary-foreground: 240 6% 10%;
+  --muted: 240 5% 96%;
+  --muted-foreground: 240 4% 46%;
+  --accent: 240 5% 96%;
+  --accent-foreground: 240 6% 10%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 142 76% 36%;
+  --warning: 38 92% 50%;
+  --border: 240 6% 90%;
+  --input: 240 6% 90%;
+  --ring: 221 83% 53%;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 240 10% 4%;
+  --foreground: 0 0% 98%;
+  --card: 240 8% 6%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 8% 6%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 240 10% 4%;
+  --secondary: 240 4% 16%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 4% 16%;
+  --muted-foreground: 240 5% 65%;
+  --accent: 240 4% 16%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 0 0% 98%;
+  --success: 142 71% 45%;
+  --warning: 38 92% 50%;
+  --border: 240 4% 16%;
+  --input: 240 4% 16%;
+  --ring: 217 91% 60%;
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-success: hsl(var(--success));
+  --color-warning: hsl(var(--warning));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, monospace;
+}
+
+/* ── Base ── */
+* { border-color: hsl(var(--border)); }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: transparent;
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* ── Transparent overlay glass surface ──
+   Opacity applies to the SURFACE only; text stays fully opaque (spec §6.3). */
+.overlay-root {
+  --overlay-alpha: 0.85;
+  background: rgba(255, 255, 255, var(--overlay-alpha));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.dark .overlay-root {
+  background: rgba(26, 26, 26, var(--overlay-alpha));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+.overlay-root.click-through { pointer-events: none; }
+.overlay-root.click-through .interactive { pointer-events: auto; }
+
+/* Frameless drag regions (Electron) */
+.app-region-drag { -webkit-app-region: drag; }
+.app-region-no-drag { -webkit-app-region: no-drag; }
+
+/* Streaming caret + character fade-in */
+@keyframes char-in { from { opacity: 0; } to { opacity: 1; } }
+.char-in { animation: char-in 0.18s ease-out both; }
+@keyframes caret-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.15; } }
+.caret { display: inline-block; width: 2px; height: 1em; background: hsl(var(--primary)); vertical-align: text-bottom; animation: caret-blink 1s steps(1) infinite; }
+
+/* Status dot pulse */
+@keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.45; transform: scale(1.35); } }
+.dot-pulse { animation: pulse-dot 1.6s ease-in-out infinite; }
+
+/* Collapse orb (48×48) */
+.overlay-orb {
+  width: 48px; height: 48px; border-radius: 9999px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, var(--overlay-alpha, 0.85));
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+.dark .overlay-orb { background: rgba(26, 26, 26, var(--overlay-alpha, 0.85)); border-color: rgba(255,255,255,0.08); }
+
+/* CSS containment isolates panel layout/paint (perf §9) */
+.panel-contained { contain: layout paint style; }
+
+/* Accessibility mode: AAA contrast + larger radius */
+.a11y-mode {
+  --radius: 0.875rem;
+  --foreground: 240 10% 4%;
+  --muted-foreground: 240 4% 30%;
+  --border: 240 6% 70%;
+  font-size: 1.125rem;
+}
+.dark.a11y-mode, .a11y-mode.dark {
+  --foreground: 0 0% 100%;
+  --muted-foreground: 240 5% 82%;
+  --border: 240 4% 40%;
+}
+
+/* Reduced motion kills all non-essential animation */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .caret { animation: none; }
+  .dot-pulse { animation: none; }
+}
