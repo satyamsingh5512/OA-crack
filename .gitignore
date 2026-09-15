@@ -1,0 +1,11 @@
+node_modules/
+dist/
+out/
+release/
+*.log
+.env
+.env.local
+coverage/
+.playwright/
+.home/
+.eb-cache/
