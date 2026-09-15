@@ -1,0 +1,25 @@
+{
+  "appId": "com.aiassistant.interview",
+  "productName": "AI Interview Assistant",
+  "win": {
+    "target": [
+      "nsis"
+    ],
+    "icon": "build/icon.ico"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createStartMenuShortcut": true,
+    "createDesktopShortcut": true,
+    "shortcutName": "AI Interview Assistant"
+  },
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "dist/**",
+    "electron/dist/**",
+    "package.json"
+  ]
+}
